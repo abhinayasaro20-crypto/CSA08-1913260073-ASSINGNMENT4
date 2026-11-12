@@ -1,0 +1,105 @@
+import os
+
+def process_attendance(folder):
+
+    attendance = {}
+    errors = []
+
+    files = [
+        f for f in os.listdir(folder)
+        if f.endswith(".txt")
+    ]
+
+    for filename in files:
+
+        path = os.path.join(folder, filename)
+
+        try:
+            with open(path, "r", encoding="utf-8") as file:
+
+                for line_no, line in enumerate(file, start=1):
+
+                    if not line.strip():
+                        continue
+
+                    parts = line.strip().split(",")
+
+                    if len(parts) != 3:
+                        errors.append(
+                            (filename, line_no, "Invalid fields")
+                        )
+                        continue
+
+                    reg_no, date, status = parts
+
+                    if status not in ["P", "A"]:
+                        errors.append(
+                            (filename, line_no, "Invalid status")
+                        )
+                        continue
+
+                    if reg_no not in attendance:
+                        attendance[reg_no] = {
+                            "present": 0,
+                            "absent": 0
+                        }
+
+                    if status == "P":
+                        attendance[reg_no]["present"] += 1
+                    else:
+                        attendance[reg_no]["absent"] += 1
+
+        except FileNotFoundError:
+            errors.append((filename, 0, "File not found"))
+
+        except PermissionError:
+            errors.append((filename, 0, "Permission denied"))
+
+    with open("attendance_summary.csv", "w",
+              encoding="utf-8") as file:
+
+        file.write("Register No,Present,Absent,Percentage\n")
+
+        for reg_no, data in attendance.items():
+
+            total = data["present"] + data["absent"]
+
+            percentage = (
+                data["present"] / total * 100
+                if total else 0
+            )
+
+            file.write(
+                f"{reg_no},{data['present']},"
+                f"{data['absent']},{percentage:.2f}\n"
+            )
+
+    with open("below_75.csv", "w",
+              encoding="utf-8") as file:
+
+        file.write("Register No,Percentage\n")
+
+        for reg_no, data in attendance.items():
+
+            total = data["present"] + data["absent"]
+
+            percentage = (
+                data["present"] / total * 100
+                if total else 0
+            )
+
+            if percentage < 75:
+                file.write(f"{reg_no},{percentage:.2f}\n")
+
+    with open("damaged_lines.log", "w",
+              encoding="utf-8") as file:
+
+        for error in errors:
+            file.write(str(error) + "\n")
+
+    print("Attendance processing completed!")
+    print("Summary generated successfully.")
+
+
+if _name_ == "_main_":
+    process_attendance("attendance_files")
