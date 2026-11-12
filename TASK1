@@ -1,0 +1,54 @@
+from decimal import Decimal, InvalidOperation
+
+def calculate_mess_bill(filename):
+    total = Decimal("0.00")
+    report = []
+    rejected = []
+
+    try:
+        with open(filename, "r", encoding="utf-8") as file:
+            for line_no, line in enumerate(file, start=1):
+
+                if not line.strip():
+                    continue
+
+                parts = line.strip().split(",")
+
+                if len(parts) != 3:
+                    rejected.append((line_no, "Invalid fields"))
+                    continue
+
+                register_no, name, amount = parts
+
+                try:
+                    amount = Decimal(amount)
+                except InvalidOperation:
+                    rejected.append((line_no, "Invalid amount"))
+                    continue
+
+                if amount < 0:
+                    rejected.append((line_no, "Negative amount"))
+                    continue
+
+                total += amount
+                report.append(f"{name} {amount:.2f}")
+
+        print("\n".join(report))
+        print("Total:", total)
+
+        print("Rejected Lines:")
+        for item in rejected:
+            print(item)
+
+    except FileNotFoundError:
+        print("File not found")
+
+    except PermissionError:
+        print("Permission denied")
+
+    except UnicodeDecodeError:
+        print("Invalid file encoding")
+
+
+if _name_ == "_main_":
+    calculate_mess_bill("mess_oct.txt")
