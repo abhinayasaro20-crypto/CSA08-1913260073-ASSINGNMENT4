@@ -1,0 +1,42 @@
+def read_attendance(filename):
+
+    records = []
+
+    with open(filename, "r", encoding="utf-8") as file:
+
+        for line in file:
+            parts = line.strip().split(",")
+
+            if len(parts) == 3:
+                records.append(parts)
+
+    return records
+
+
+def percentage(present, total):
+
+    if total == 0:
+        return 0
+
+    return (present / total) * 100
+
+
+def write_report(records, filename):
+
+    with open(filename, "w", encoding="utf-8") as file:
+
+        for record in records:
+            file.write(",".join(record) + "\n")
+
+
+def main():
+
+    records = read_attendance("day.csv")
+
+    write_report(records, "report.csv")
+
+    print("Attendance records:", len(records))
+
+
+if _name_ == "_main_":
+    main()
