@@ -1,0 +1,39 @@
+class InvalidRecord(Exception):
+    pass
+
+
+def valid_email(email):
+
+    email = email.strip()
+
+    if " " in email or email.count("@") != 1:
+        return False
+
+    local, domain = email.split("@")
+
+    return (
+        bool(local)
+        and bool(domain)
+        and "." in domain
+    )
+
+
+def validate_record(line):
+
+    parts = [
+        part.strip()
+        for part in line.strip().split(",")
+    ]
+
+    if len(parts) != 5:
+        raise InvalidRecord("Invalid number of fields")
+
+    register_no, name, department, email, event_text = parts
+
+    if not all((register_no, name, department, email, event_text)):
+        raise InvalidRecord("Empty fields found")
+
+    if not valid_email(email):
+        raise InvalidRecord("Invalid email address")
+
+    events 
